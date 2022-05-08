@@ -8,7 +8,7 @@
 
 # Installation
 To get started, this is all you need to do:
-* <a href="https://github.com/codlatn/ZATCA-OPENCART">Watch the video for Installation steps</a>
+* <a href="https://github.com/codlatn/ZATCA-OPENCART">Video for Installation steps</a>
  1. Download zatca.codlatn.ocmod.zip file
  2. Go to Admin => Extensions => Installer  => Upload zatca.codlatn.ocmod.zip file. 
  3. Then Admin => Extensions => Modifications => Refresh Button.
