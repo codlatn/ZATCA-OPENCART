@@ -68,7 +68,7 @@
 			<add position="before">
 				<![CDATA[
 				//codlatn ZATCA
-				private function zatcaBaracode($totals,$store_name,$dateAdded){
+				private function zatcaBaracode($totals,$storeName,$dateAdded){
 				
 				foreach ($totals as $total) {$total_data[$total['code']] = ['value'  => number_format($total['value'],2)];}
 				
@@ -81,7 +81,7 @@
 				
 				$displayQRCodeAsBase64 = GenerateQrCode::fromArray([
 				
-				new Seller($order_info['store_name']),
+				new Seller($storeName),
 				
 				new TaxNumber($this->config->get('config_vat_number')),
 				
