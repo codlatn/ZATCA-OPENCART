@@ -1,76 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
 <modification>
-    <name>الفاتورة الإلكترونية - الهيئة العامة للزكاة والدخل</name>
-    <code>Codlatn</code>
-    <description>For Opencart 3.x</description>
-    <version>1.0</version>
-    <author>FAHAD: admin@codlatn.com</author>
-    <link>https://github.com/codlatn</link>
-
-     <file path="admin/controller/setting/setting.php">
-        <operation  >
-            <search>
-                <![CDATA[		if (isset($this->request->post['config_owner'])) { ]]>
-            </search>
-            <add position="before"><![CDATA[
-            //Codlatn
-            if (isset($this->request->post['config_vat_number'])) {
-                $data['config_vat_number'] = $this->request->post['config_vat_number'];
-            } else {
-                $data['config_vat_number'] = $this->config->get('config_vat_number');
-            }]]></add>
-        </operation>
-    </file>
-    <file path="admin/view/template/setting/setting.twig">
-        <operation  >
-            <search><![CDATA[<input type="text" name="config_owner" value="{{ config_owner }}" placeholder="{{ entry_owner }}" id="input-owner" class="form-control" />]]></search>
-            <add position="after"><![CDATA[<hr><lable>الرقم الضريبي</lable><input type="text" name="config_vat_number" value="{{ config_vat_number }}" placeholder="الرقم الضريبي" id="input-vat" class="form-control" /> ]]></add>
-        </operation>
-    </file>
-     <file path="admin/controller/sale/order.php">
-        <operation  >
-            <search><![CDATA[<?php]]></search>
-            <add position="after"><![CDATA[
-use Salla\ZATCA\GenerateQrCode;
-use Salla\ZATCA\Tags\InvoiceDate;
-use Salla\ZATCA\Tags\InvoiceTaxAmount;
-use Salla\ZATCA\Tags\InvoiceTotalAmount;
-use Salla\ZATCA\Tags\Seller;
-use Salla\ZATCA\Tags\TaxNumber;
-                ]]></add>
-        </operation>
-    </file>
-    <file path="admin/controller/sale/order.php">
-        <operation  >
-            <search index="1"><![CDATA[
-                'text'  => $this->currency->format($total['value'], $order_info['currency_code'], $order_info['currency_value']),
-                ]]></search>
-            <add position="after"><![CDATA['totalAsNumber' => number_format($total['value'],2,'.', '')]]></add>
-        </operation>
-    </file>
-    <file path="admin/controller/sale/order.php">
-        <operation  >
-            <search><![CDATA[$this->response->setOutput($this->load->view('sale/order_invoice', $data));]]></search>
-            <add position="before"><![CDATA[
-                //Salla
-				require_once DIR_SYSTEM .'/library/zatca.gov.sa/vendor/autoload.php';
+	<name>
+		الفاتورة الإلكترونية - الهيئة العامة للزكاة والدخل
+	</name>
+	<code>
+		Codlatn
+	</code>
+	<description>
+		For Opencart 3.x
+	</description>
+	<version>
+		1.0
+	</version>
+	<author>
+		FAHAD: admin@codlatn.com
+	</author>
+	<link>
+		https://github.com/codlatn
+	</link>
+	<file path="admin/controller/setting/setting.php">
+		<operation>
+			<search>
+				<![CDATA[		if (isset($this->request->post['config_owner'])) { ]]>
+			</search>
+			<add position="before">
+				<![CDATA[
+				//Codlatn
+				if (isset($this->request->post['config_vat_number'])) {
+				$data['config_vat_number'] = $this->request->post['config_vat_number'];
+				} else {
+				$data['config_vat_number'] = $this->config->get('config_vat_number');
+				}
+				]]>
+			</add>
+		</operation>
+	</file>
+	<file path="admin/view/template/setting/setting.twig">
+		<operation>
+			<search>
+				<![CDATA[<input type="text" name="config_owner" value="{{ config_owner }}" placeholder="{{ entry_owner }}" id="input-owner" class="form-control" />]]>
+			</search>
+			<add position="after">
+				<![CDATA[<hr><lable>الرقم الضريبي</lable><input type="text" name="config_vat_number" value="{{ config_vat_number }}" placeholder="الرقم الضريبي" id="input-vat" class="form-control" /> ]]>
+			</add>
+		</operation>
+	</file>
+	<file path="admin/controller/sale/order.php">
+		<operation>
+			<search>
+				<![CDATA[<?php]]>
+			</search>
+			<add position="after">
+				<![CDATA[
+				use Salla\ZATCA\GenerateQrCode;
+				use Salla\ZATCA\Tags\InvoiceDate;
+				use Salla\ZATCA\Tags\InvoiceTaxAmount;
+				use Salla\ZATCA\Tags\InvoiceTotalAmount;
+				use Salla\ZATCA\Tags\Seller;
+				use Salla\ZATCA\Tags\TaxNumber;
+				]]>
+			</add>
+		</operation>
+		<operation>
+			<search>
+				<![CDATA[index()]]>
+			</search>
+			<add position="before">
+				<![CDATA[
+				//codlatn ZATCA
+				private function zatcaBaracode($totals,$store_name,$dateAdded){
+				
+				foreach ($totals as $total) {$total_data[$total['code']] = ['value'  => number_format($total['value'],2)];}
+				
+				//debug
+				//echo "<pre>"; var_dump($total_data);exit;
+				
+				if(!empty($total_data['tax']['value']) && !empty($this->config->get('config_vat_number'))){
+				
+				require( DIR_SYSTEM.'library/zatca.gov.sa/vendor/autoload.php' );
+				
 				$displayQRCodeAsBase64 = GenerateQrCode::fromArray([
-				   new Seller($this->config->get('config_owner')),  
-				   new TaxNumber($this->config->get('config_vat_number')),  
-				   new InvoiceDate($order_info["date_added"]),  
-				   new InvoiceTotalAmount($data['orders'][0]['total'][2]['totalAsNumber']),  
-				   new InvoiceTaxAmount($data['orders'][0]['total'][1]['totalAsNumber'])  
+				
+				new Seller($order_info['store_name']),
+				
+				new TaxNumber($this->config->get('config_vat_number')),
+				
+				new InvoiceDate($dateAdded),
+				
+				new InvoiceTotalAmount( $total_data['total']['value'] ),
+				
+				new InvoiceTaxAmount( $total_data['tax']['value'])
+				
 				])->render();
-			   $data['baracode'] = $displayQRCodeAsBase64;
-               ]]></add>
-        </operation>
-    </file>
-     <file path="admin/view/template/sale/order_invoice.twig">
-        <operation  >
-            <search><![CDATA[<td style="width: 50%;"><address>]]></search>
-            <add position="before"><![CDATA[<td><img width="100" src="{{baracode}}" /></td>]]></add>
-        </operation>
-    </file>
-
+				
+				return  $displayQRCodeAsBase64;
+				
+				}else{
+				
+				return 'https://www.shutterstock.com/image-vector/illustration-no-tax-sign-isolated-260nw-1785696386.jpg';
+				
+				}
+				}
+				]]>
+			</add>
+		</operation>
+		<operation>
+			<search index="1">
+				<![CDATA[$data['orders'][] = array(]]>
+			</search>
+			<add position="after">
+				<![CDATA[				 'baracode'			=> $this->zatcaBaracode($totals,$order_info['store_name'],date($this->language->get('date_format_short'), strtotime($order_info['date_added'])) ), //codlatn ZATCA  ]]>
+			</add>
+		</operation>
+	</file>
+	<file path="admin/view/template/sale/order_invoice.twig">
+		<operation>
+			<search>
+				<![CDATA[<td style="width: 50%;"><address>]]>
+			</search>
+			<add position="before">
+				<![CDATA[<td><img width="100" src="{{order.baracode}}" /></td>]]>
+			</add>
+		</operation>
+	</file>
 </modification>
- 
